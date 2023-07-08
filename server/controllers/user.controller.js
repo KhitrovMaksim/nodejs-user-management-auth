@@ -10,9 +10,10 @@ class UserController {
       if (!errors.isEmpty()) {
         return res.json({ message: 'Registration error', errors });
       }
-      const { nickname, firstname, lastname, password } = req.body;
 
-      const userData = await userService.registration(nickname, firstname, lastname, password);
+      const newUser = new UserDto(req.body);
+      const userData = await userService.registration(newUser);
+
       return res.json({ user: userData, message: 'User successfully added' });
     } catch (error) {
       logger.error(`Registration error: ${error}`);
@@ -66,6 +67,21 @@ class UserController {
       return res.json({ userData, message: 'User successfully updated' });
     } catch (error) {
       logger.error(`Updating user error: ${error}`);
+      return res.status(400).json({ message: 'Updating user error' });
+    }
+  }
+
+  async delete(req, res) {
+    try {
+      const { error, userData } = await userService.delete(req.params.id);
+
+      if (error) {
+        return res.json({ message: error });
+      }
+
+      return res.json({ userData, message: 'User successfully deleted' });
+    } catch (error) {
+      logger.error(`Deleting user error: ${error}`);
       return res.status(400).json({ message: 'Updating user error' });
     }
   }

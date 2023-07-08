@@ -1,20 +1,25 @@
 const User = require('../models/user.model');
+const Role = require('../models/role.model');
 const getHashedPassword = require('../../lib/helpers/getHashedPassword');
 const UserDto = require('../dtos/user.dto');
 const tokenService = require('./token.service');
 
 class UserService {
-  async registration(nickname, firstname, lastname, password) {
-    const hashedPassword = getHashedPassword(password);
-    const candidate = await User.findOne({ nickname });
+  async registration(newUser) {
+    const hashedPassword = getHashedPassword(newUser.password);
+
+    const candidate = await User.findOne({ nickname: newUser.nickname });
     if (candidate) {
       throw new Error('User already exist');
     }
+
+    const userRole = await Role.findOne({ role: 'admin' });
     const user = new User({
-      nickname,
-      firstname,
-      lastname,
+      nickname: newUser.nickname,
+      firstname: newUser.firstname,
+      lastname: newUser.lastname,
       password: hashedPassword,
+      role: userRole.role,
     });
 
     await user.save();
@@ -91,6 +96,28 @@ class UserService {
 
     await User.updateOne({ _id: newData.id }, newUserData);
     return { error: null, userData: newUserData };
+  }
+
+  async delete(userId) {
+    const user = await User.findOne({ _id: userId });
+
+    if (!user) {
+      return { error: 'User not exist', user };
+    }
+
+    if (user.deleted_at) {
+      return { error: 'User already deleted', user };
+    }
+
+    const userData = new UserDto(user);
+
+    const newUserData = {
+      updated_at: new Date().toISOString(),
+      deleted_at: new Date().toISOString(),
+    };
+
+    await User.updateOne({ _id: userId }, newUserData);
+    return { error: null, userData };
   }
 }
 
