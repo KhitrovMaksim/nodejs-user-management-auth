@@ -7,7 +7,7 @@ class TokenService {
       payload,
       SECRET,
       {
-        expiresIn: '60m',
+        expiresIn: '24h',
       },
       null,
     );
