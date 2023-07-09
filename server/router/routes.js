@@ -3,6 +3,7 @@ const { check } = require('express-validator');
 const userController = require('../controllers/user.controller');
 const authController = require('../controllers/auth.controller');
 const authMiddleware = require('../middlewares/auth.middleware');
+const roleMiddleware = require('../middlewares/role.middleware');
 
 const router = express.Router();
 
@@ -28,6 +29,7 @@ router.post(
   ],
   authController.login,
 );
-router.put('/update/:id', authMiddleware, userController.update);
+router.put('/update/:id', authMiddleware, roleMiddleware(['admin']), userController.update);
+router.delete('/delete/:id', authMiddleware, roleMiddleware(['admin']), userController.delete);
 
 module.exports = router;
